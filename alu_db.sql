@@ -1,3 +1,33 @@
+
+CREATE TABLE Students (
+    student_id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    classroom_id INT,
+    enrollment_date DATE,
+    FOREIGN KEY (classroom_id)
+        REFERENCES Classroom(classroom_id)
+);
+
+INSERT INTO Students (student_id, name, email, classroom_id, enrollment_date)
+VALUES
+(1, 'Bruno Heart', 'bruno@alu.edu', 1, '2026-01-10'),
+(2, 'Kotana Alan', 'kotana@alu.edu', 2, '2026-01-11'),
+(3, 'Fiacre Dev', 'fiacre@alu.edu', 3, '2026-01-12'),
+(4, 'Favour nziza', 'favour@alu.edu', 4, '2026-01-13'),
+(5, 'Ishimwe Charles', 'i.charles@alu.edu', 6, '2026-01-14');
+
+UPDATE Students
+SET email = 'student4_updated@alu.edu'
+WHERE student_id = 4;
+
+DELETE FROM Students
+WHERE student_id = 5;
+
+SELECT *
+FROM Students
+WHERE classroom_id = 1;
+
 CREATE TABLE Classroom (
     classroom_id INT PRIMARY KEY,
     room_number VARCHAR(10) NOT NULL,
@@ -50,32 +80,3 @@ SELECT *
 FROM Faculty
 WHERE department = 'Software Engineering';
 
---- Students Table ---
-CREATE TABLE Students (
-    student_id INT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    classroom_id INT,
-    enrollment_date DATE,
-    FOREIGN KEY (classroom_id)
-        REFERENCES Classroom(classroom_id)
-);
-
-INSERT INTO Students (student_id, name, email, classroom_id, enrollment_date)
-VALUES
-(1, 'Bruno Heart', 'bruno@alu.edu', 1, '2026-01-10'),
-(2, 'Kotana Alan', 'kotana@alu.edu', 2, '2026-01-11'),
-(3, 'Fiacre Dev', 'fiacre@alu.edu', 3, '2026-01-12'),
-(4, 'Favour nziza', 'favour@alu.edu', 4, '2026-01-13'),
-(5, 'Ishimwe Charles', 'i.charles@alu.edu', 6, '2026-01-14');
-
-UPDATE Students
-SET email = 'student4_updated@alu.edu'
-WHERE student_id = 4;
-
-DELETE FROM Students
-WHERE student_id = 5;
-
-SELECT *
-FROM Students
-WHERE classroom_id = 1;

@@ -80,38 +80,6 @@ SELECT *
 FROM Faculty
 WHERE department = 'Software Engineering';
 
--- Member D: Courses table
-
-CREATE TABLE Courses (
-    course_id INT PRIMARY KEY,
-    course_name VARCHAR(100) NOT NULL,
-    credits INT,
-    faculty_id INT,
-    classroom_id INT,
-    FOREIGN KEY (faculty_id)
-        REFERENCES Faculty(faculty_id),
-    FOREIGN KEY (classroom_id)
-        REFERENCES Classroom(classroom_id)
-);
-
-INSERT INTO Courses (course_id, course_name, credits, faculty_id, classroom_id)
-VALUES
-(201, 'Database Systems', 3, 101, 1),
-(202, 'Software Engineering', 4, 101, 2),
-(203, 'Entrepreneurship', 3, 103, 3),
-(204, 'Business Analytics', 3, 102, 4),
-(205, 'Leadership', 2, 104, 1);
-
-UPDATE Courses
-SET credits = 4
-WHERE course_id = 201;
-
-DELETE FROM Courses
-WHERE course_id = 205;
-
-SELECT *
-FROM Courses
-WHERE credits = 3;
 
 -- My work as member E
 

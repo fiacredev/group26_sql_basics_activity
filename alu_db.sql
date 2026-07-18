@@ -1,33 +1,9 @@
+-- ALU school database - Group 26
+CREATE DATABASE IF NOT EXISTS alu_db;
+USE alu_db;
 
-CREATE TABLE Students (
-    student_id INT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    classroom_id INT,
-    enrollment_date DATE,
-    FOREIGN KEY (classroom_id)
-        REFERENCES Classroom(classroom_id)
-);
 
-INSERT INTO Students (student_id, name, email, classroom_id, enrollment_date)
-VALUES
-(1, 'Bruno Heart', 'bruno@alu.edu', 1, '2026-01-10'),
-(2, 'Kotana Alan', 'kotana@alu.edu', 2, '2026-01-11'),
-(3, 'Fiacre Dev', 'fiacre@alu.edu', 3, '2026-01-12'),
-(4, 'Favour nziza', 'favour@alu.edu', 4, '2026-01-13'),
-(5, 'Ishimwe Charles', 'i.charles@alu.edu', 6, '2026-01-14');
-
-UPDATE Students
-SET email = 'student4_updated@alu.edu'
-WHERE student_id = 4;
-
-DELETE FROM Students
-WHERE student_id = 5;
-
-SELECT *
-FROM Students
-WHERE classroom_id = 1;
-
+-- Member B - Classroom
 CREATE TABLE Classroom (
     classroom_id INT PRIMARY KEY,
     room_number VARCHAR(10) NOT NULL,
@@ -54,6 +30,8 @@ SELECT *
 FROM Classroom
 WHERE building = 'Main Hall';
 
+
+-- Member C - Faculty
 CREATE TABLE Faculty (
     faculty_id INT PRIMARY KEY,
     name VARCHAR(100),
@@ -80,8 +58,40 @@ SELECT *
 FROM Faculty
 WHERE department = 'Software Engineering';
 
--- Member D: Courses table
 
+-- Member A - Students
+-- has a FK to Classroom, that's why Classroom is created above this
+CREATE TABLE Students (
+    student_id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    classroom_id INT,
+    enrollment_date DATE,
+    FOREIGN KEY (classroom_id)
+        REFERENCES Classroom(classroom_id)
+);
+
+INSERT INTO Students (student_id, name, email, classroom_id, enrollment_date)
+VALUES
+(1, 'Bruno Heart', 'bruno@alu.edu', 1, '2026-01-10'),
+(2, 'Kotana Alan', 'kotana@alu.edu', 2, '2026-01-11'),
+(3, 'Fiacre Dev', 'fiacre@alu.edu', 3, '2026-01-12'),
+(4, 'Favour nziza', 'favour@alu.edu', 4, '2026-01-13'),
+(5, 'Ishimwe Charles', 'i.charles@alu.edu', 2, '2026-01-14');
+
+UPDATE Students
+SET email = 'student4_updated@alu.edu'
+WHERE student_id = 4;
+
+DELETE FROM Students
+WHERE student_id = 5;
+
+SELECT *
+FROM Students
+WHERE classroom_id = 1;
+
+
+-- Member D - Courses
 CREATE TABLE Courses (
     course_id INT PRIMARY KEY,
     course_name VARCHAR(100) NOT NULL,
@@ -113,26 +123,28 @@ SELECT *
 FROM Courses
 WHERE credits = 3;
 
--- My work as member E
 
-
+-- Member E - Extra_Curricular_Activities + the two junction tables
 CREATE TABLE Extra_Curricular_Activities (
     activity_id INT PRIMARY KEY,
     activity_name VARCHAR(100) NOT NULL,
-    supervisor VARCHAR(100)
+    category VARCHAR(50),
+    faculty_advisor_id INT,
+    FOREIGN KEY (faculty_advisor_id)
+        REFERENCES Faculty(faculty_id)
 );
 
 INSERT INTO Extra_Curricular_Activities
-(activity_id, activity_name, supervisor)
+(activity_id, activity_name, category, faculty_advisor_id)
 VALUES
-(1, 'Football Club', 'Coach John'),
-(2, 'Basketball Club', 'Coach Mary'),
-(3, 'Drama Club', 'Mr. James'),
-(4, 'Music Club', 'Ms. Grace'),
-(5, 'Coding Club', 'Dr. Alice');
+(1, 'Football Club', 'Sports', 102),
+(2, 'Basketball Club', 'Sports', 104),
+(3, 'Drama Club', 'Arts', 103),
+(4, 'Music Club', 'Arts', 101),
+(5, 'Coding Club', 'Technology', 101);
 
 UPDATE Extra_Curricular_Activities
-SET supervisor = 'Dr. Brian Smith'
+SET faculty_advisor_id = 102
 WHERE activity_id = 5;
 
 DELETE FROM Extra_Curricular_Activities
@@ -143,8 +155,7 @@ FROM Extra_Curricular_Activities
 WHERE activity_name = 'Coding Club';
 
 
--- Student_Courses Junction Table
-
+-- Student_Courses junction table (many-to-many between students and courses)
 CREATE TABLE Student_Courses (
     student_id INT,
     course_id INT,
@@ -158,15 +169,14 @@ CREATE TABLE Student_Courses (
 INSERT INTO Student_Courses
 (student_id, course_id)
 VALUES
-(1,201),
-(1,202),
-(2,201),
-(3,203),
-(4,204);
+(1, 201),
+(1, 202),
+(2, 201),
+(3, 203),
+(4, 204);
 
 
--- Student_Activities Junction Table
-
+-- Student_Activities junction table (many-to-many between students and activities)
 CREATE TABLE Student_Activities (
     student_id INT,
     activity_id INT,
@@ -177,12 +187,58 @@ CREATE TABLE Student_Activities (
         REFERENCES Extra_Curricular_Activities(activity_id)
 );
 
+-- student 5 was deleted and activity 4 was deleted, so we avoid both here
 INSERT INTO Student_Activities
 (student_id, activity_id)
 VALUES
-(1,1),
-(2,2),
-(3,3),
-(4,5),
-(5,1);
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 5),
+(3, 1);
 
+-- Join 1: full sentence -> student, their course, the teacher and the room
+SELECT CONCAT(s.name, ' is enrolled in ', c.course_name,
+              ', taught by ', f.name, ', in ', cl.building) AS sentence
+FROM Students s
+JOIN Student_Courses sc ON s.student_id = sc.student_id
+JOIN Courses c ON sc.course_id = c.course_id
+JOIN Faculty f ON c.faculty_id = f.faculty_id
+JOIN Classroom cl ON c.classroom_id = cl.classroom_id;
+
+-- Join 2: student and the club they joined, plus the faculty advising it
+SELECT CONCAT(s.name, ' participates in ', a.activity_name,
+              ', advised by ', f.name) AS sentence
+FROM Students s
+JOIN Student_Activities sa ON s.student_id = sa.student_id
+JOIN Extra_Curricular_Activities a ON sa.activity_id = a.activity_id
+JOIN Faculty f ON a.faculty_advisor_id = f.faculty_id;
+
+-- Join 3 (our own choice): which room each student is assigned to
+SELECT CONCAT(s.name, ' is assigned to room ', cl.room_number,
+              ' in ', cl.building) AS sentence
+FROM Students s
+JOIN Classroom cl ON s.classroom_id = cl.classroom_id;
+
+-- Aggregate: how many students are enrolled in each course
+SELECT c.course_name, COUNT(sc.student_id) AS number_of_students
+FROM Courses c
+JOIN Student_Courses sc ON c.course_id = sc.course_id
+GROUP BY c.course_name;
+
+
+/*
+Normalization check (Group 26):
+
+We think the database is in 3NF. Every table only keeps data about its own
+thing - Classroom keeps room info, Faculty keeps staff info, Students keeps
+student info and so on, so we are not repeating the same data in two places.
+Where a table needs something from another one we just store the id (like
+classroom_id, faculty_id, faculty_advisor_id) instead of copying the whole
+name or building over, so if a value changes we only change it once.
+
+The two many-to-many links (a student can take many courses, a course can have
+many students, same idea for activities) are handled by the Student_Courses and
+Student_Activities tables. Each of those uses both ids together as the primary
+key, which stops the same pair being added twice and keeps the main tables clean.
+*/
